@@ -16,8 +16,11 @@ class RealBrowserLocust(Locust):
     """
     client = None
     timeout = 30
-    screen_width = None
-    screen_height = None
+    stop_timeout = 120
+    min_wait = 1000
+    max_wait = 2000
+    screen_width = 1200
+    screen_height = 800
 
     def __init__(self):
         super(RealBrowserLocust, self).__init__()
@@ -28,6 +31,21 @@ class RealBrowserLocust(Locust):
             raise LocustError("You must specify a screen_height "
                               "for the browser")
         self.proxy_server = os_getenv("LOCUST_BROWSER_PROXY", None)
+
+    def teardown(self):
+        try:
+            gevent.sleep(5)  # let reports complete its job
+            from locust.web import logger
+            logger.warn('Shutting down all')
+            runners.locust_runner.stop()
+            runners.locust_runner.quit()
+        finally:
+            import gc
+            from locust.web import logger
+            logger.warn('Shutting down all')
+            gevent.sleep(5)
+            gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)])
+            os._exit(0)
 
 
 class ChromeLocust(RealBrowserLocust):
