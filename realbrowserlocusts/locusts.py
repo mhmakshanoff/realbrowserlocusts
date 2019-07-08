@@ -32,6 +32,32 @@ class RealBrowserLocust(Locust):
                               "for the browser")
         self.proxy_server = os_getenv("LOCUST_BROWSER_PROXY", None)
 
+class ChromeLocust(RealBrowserLocust):
+    """
+    Provides a Chrome webdriver that logs GET's and waits to locust
+    """
+
+    client = None
+    timeout = 30
+    stop_timeout = 120
+    min_wait = 1000
+    max_wait = 2000
+    screen_width = 1200
+    screen_height = 800
+
+    def __init__(self):
+        super(ChromeLocust, self).__init__()
+        options = webdriver.ChromeOptions()
+        if self.proxy_server:
+            _LOGGER.info('Using proxy: ' + self.proxy_server)
+            options.add_argument('proxy-server={}'.format(self.proxy_server))
+        self.client = RealBrowserClient(
+            webdriver.Chrome(chrome_options=options),
+            self.timeout,
+            self.screen_width,
+            self.screen_height
+        )
+
     def teardown(self):
         try:
             gevent.sleep(5)  # let reports complete its job
@@ -47,29 +73,19 @@ class RealBrowserLocust(Locust):
             gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)])
             os._exit(0)
 
-
-class ChromeLocust(RealBrowserLocust):
-    """
-    Provides a Chrome webdriver that logs GET's and waits to locust
-    """
-    def __init__(self):
-        super(ChromeLocust, self).__init__()
-        options = webdriver.ChromeOptions()
-        if self.proxy_server:
-            _LOGGER.info('Using proxy: ' + self.proxy_server)
-            options.add_argument('proxy-server={}'.format(self.proxy_server))
-        self.client = RealBrowserClient(
-            webdriver.Chrome(chrome_options=options),
-            self.timeout,
-            self.screen_width,
-            self.screen_height
-        )
-
-
 class HeadlessChromeLocust(RealBrowserLocust):
     """
     Provides a headless Chrome webdriver that logs GET's and waits to locust
     """
+
+    client = None
+    timeout = 30
+    stop_timeout = 120
+    min_wait = 1000
+    max_wait = 2000
+    screen_width = 1200
+    screen_height = 800
+
     def __init__(self):
         super(HeadlessChromeLocust, self).__init__()
         options = webdriver.ChromeOptions()
@@ -93,11 +109,35 @@ class HeadlessChromeLocust(RealBrowserLocust):
             set_window=False
         )
 
+    def teardown(self):
+        try:
+            gevent.sleep(5)  # let reports complete its job
+            from locust.web import logger
+            logger.warn('Shutting down all')
+            runners.locust_runner.stop()
+            runners.locust_runner.quit()
+        finally:
+            import gc
+            from locust.web import logger
+            logger.warn('Shutting down all')
+            gevent.sleep(5)
+            gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)])
+            os._exit(0)
+
 
 class FirefoxLocust(RealBrowserLocust):
     """
     Provides a Firefox webdriver that logs GET's and waits to locust
     """
+
+    client = None
+    timeout = 30
+    stop_timeout = 120
+    min_wait = 1000
+    max_wait = 2000
+    screen_width = 1200
+    screen_height = 800
+
     def __init__(self):
         super(FirefoxLocust, self).__init__()
         self.client = RealBrowserClient(
@@ -107,16 +147,17 @@ class FirefoxLocust(RealBrowserLocust):
             self.screen_height
         )
 
-
-class PhantomJSLocust(RealBrowserLocust):
-    """
-    Provides a PhantomJS webdriver that logs GET's and waits to locust
-    """
-    def __init__(self):
-        super(PhantomJSLocust, self).__init__()
-        self.client = RealBrowserClient(
-            webdriver.PhantomJS(),
-            self.timeout,
-            self.screen_width,
-            self.screen_height
-        )
+    def teardown(self):
+        try:
+            gevent.sleep(5)  # let reports complete its job
+            from locust.web import logger
+            logger.warn('Shutting down all')
+            runners.locust_runner.stop()
+            runners.locust_runner.quit()
+        finally:
+            import gc
+            from locust.web import logger
+            logger.warn('Shutting down all')
+            gevent.sleep(5)
+            gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)])
+            os._exit(0)
