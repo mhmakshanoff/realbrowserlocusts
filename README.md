@@ -40,7 +40,6 @@ class LocustUserBehavior(TaskSet):
 
 class LocustUser(FirefoxLocust):
 #class LocustUser(ChromeLocust):
-#class LocustUser(PhantomJSLocust):
 
     host = "not really used"
     timeout = 30 #in seconds in waitUntil thingies
