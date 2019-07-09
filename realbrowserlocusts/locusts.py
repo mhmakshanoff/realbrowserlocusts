@@ -89,3 +89,16 @@ class FirefoxLocust(RealBrowserLocust):
             self.screen_width,
             self.screen_height
         )
+
+class PhantomJSLocust(RealBrowserLocust):
+    """
+    Provides a PhantomJS webdriver that logs GET's and waits to locust
+    """
+    def __init__(self):
+        super(PhantomJSLocust, self).__init__()
+        self.client = RealBrowserClient(
+            webdriver.PhantomJS(),
+            self.timeout,
+            self.screen_width,
+            self.screen_height
+        )
